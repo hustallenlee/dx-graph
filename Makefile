@@ -1,4 +1,3 @@
-#makefile
 CC= g++
 
 CXXFLAGES = -std=c++0x
