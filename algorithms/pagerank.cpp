@@ -51,12 +51,12 @@ int main(int argc,char * argv[]){
 	record<< conf["type"];
 	record>> type;
 
-	std::bitset<vertex_num> update_set;
+	std::bitset<vertex_num> update_bitset;
 	std::vector<array > aux_array(vertex_num, init_array); //auxiliary array
 	int	edge_size = sizeof(format::edge_t);
 	int flag = 1;   //indicate which is the old
 	format::edge_t edge;
-	int update_num = 0;
+	//int update_num = 0;
 	
 
 	
@@ -78,22 +78,27 @@ int main(int argc,char * argv[]){
 			disk_io.read(buf,edge_size);
 			format::format_utils::read_edge(buf, edge);	
 			
-			aux_array[edge.dst].res[1-flag] += 
-		 	0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
-			
+			if (update_bitset.test(edge.dst) == false ){	
+				//if the vertice is not converged, then update
+				aux_array[edge.dst].res[1-flag] += 		//new
+		 		0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
+			}
+			//else{ //else copy the pagerank value to the new res
+			//	aux_array[edge.dst].res[1-flag] = aux_array[edge.dst].res[flag];
+			//}
 		}
 
 		disk_io.write_join();
-		for(auto iter = aux_array.begin(); iter!=aux_array.end(); iter++){
-			if ( fabs(iter->res[flag] - iter->res[1-flag]) >0.0001){
-				update_num ++;
-				iter->update = 1;
-			}
-			else{
-				iter->update = 0;
+		int pos = 0;
+		for(auto iter = aux_array.begin(); iter!=aux_array.end(); iter++, pos++){
+			if ( update_bitset.test(pos) == false ){ 		//updated
+				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.0001){ //convergence
+					update_bitset.set(pos, true);
+				}
+				iter->res[flag] = iter->res[1-flag]; //update the old
 			}
 		}
-		flag = (flag == 0? 1:0);
+		//flag = (flag == 0? 1:0);
 		time --;
 	}
 	
