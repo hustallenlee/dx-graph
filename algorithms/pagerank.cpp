@@ -10,7 +10,7 @@
 #include <cmath>
 #include <fstream>
 //#include <bitset>
-#define COMPACT_GRAPH
+//#define COMPACT_GRAPH
 
 typedef struct{
 	int degree;
@@ -35,19 +35,25 @@ int main(int argc,char * argv[]){
 	init_array.res[0] = 0.0;
 	init_array.res[1] = 0.0;
 
-
+	record.clear();
 	record << argv[1];
 	record >> filename;	
+	
+	record.clear();
 	record << argv[2];
 	record >> times;
+
 	format::config conf;
-	if ( conf.open_fill(filename + ".ini")){
+	if ( !conf.open_fill(filename + ".ini")){
 		LOG_TRIVIAL(fatal)<< "can not open config file "
 							<<filename + ".ini";
 		return 0;
 	}
+	record.clear();
 	record<< conf["vertices"];
 	record>> vertex_num;	
+
+	record.clear();
 	record<< conf["type"];
 	record>> type;
 
@@ -61,20 +67,25 @@ int main(int argc,char * argv[]){
 
 	
 	dx_lib::buffer disk_io(1000*1000*50);
-	
+	std::cout<<"here1 "<<times<<std::endl;	
+
 	disk_io.start_write(filename);
 	while( !disk_io.is_over()){			//the first scan, get every vertice's degree
 		disk_io.read(buf,edge_size);
 		format::format_utils::read_edge(buf, edge);
+	//std::cout<<"test "<<sizeof(edge)<<std::endl;	
 		aux_array[edge.src].degree += 1;
+	//std::cout<<"here2"<<std::endl;	
 		aux_array[edge.src].res[flag] = edge.value;
 		
 	}
 	disk_io.write_join();
-	
+		
 	while (times){
 		disk_io.start_write(filename);
+		std::cout<<"here2"<<times<<std::endl;	
 		while( !disk_io.is_over()){			//the second scan, scatter and gather phase
+			//std::cout<<"test"<<times<<std::endl;	
 			disk_io.read(buf,edge_size);
 			format::format_utils::read_edge(buf, edge);	
 			

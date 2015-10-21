@@ -56,6 +56,7 @@ namespace dx_lib {
 			over = 0;
 			read_count = 0;
 			write_count = 0;
+			thrd = NULL;
 		}
 
 		buffer(unsigned int size){
@@ -67,6 +68,7 @@ namespace dx_lib {
 			over = 0;
 			read_count = 0;
 			write_count = 0;
+			thrd = NULL;
 		}
 	
 		~buffer(){
@@ -155,7 +157,7 @@ namespace dx_lib {
 			return out_num;
 		}
 		
-		//write into the buffer the file
+		//write the file into the buffer 
 		int write( std::string filename ){
 			std::ifstream infile( filename,std::ios::in | std::ios::binary);
 			const int size = 100;
@@ -200,51 +202,35 @@ namespace dx_lib {
 		}
 		
 		void start_write(std::string filename){
+			reset();
 			auto f = boost::bind(&buffer::write, this, filename);
 			LOG_TRIVIAL(info) << "starting write the buffer using file "<< filename;
 			thrd = new boost::thread(f);
 		}
 
 		void write_join(){
-			thrd->join();
+			if (thrd){
+				if (thrd->joinable() ){
+					thrd->join();
+				}
+				delete thrd;
+				thrd = NULL;
+			}
 		}
 	
 		bool is_over(){
 			boost::mutex::scoped_lock lock(buffer_mutex);
+			//std::cout<<"in buffer is_over"<<std::endl;	
 			return (over == 1) && (is_empty()) ;
-		} 
+		}
+		
+		void reset(){
+			over = 0;
+			read_count = 0;
+			write_count = 0;
+			write_join();
+		}
 	};
-	
-	//缓冲区类
-	/*class buffer {
-	private:
-
-		boost:mutex buffer_mutex;
-		typedef boost::mutex::scoped_lock
-		scoped_lock;
-
-		seq_queue sq;
-		ifstream *infile;
-
-	public:
-
-		buffer(std::string filename):{
-			infile = new ifstream(filename,ifstream::in | ifstream::binary);
-		}
-
-		～buffer(){
-			delete infile;
-		}
-
-		//buffer &operator<<(buffer &buf,std:string filename){
-		//	
-		//}
-
-		void start_push(){
-			infile.read()				
-		}
-	};*/
-
-}
+}	
 #endif
 
