@@ -34,32 +34,41 @@ namespace format {
 		std::string str_null;
 
 	public:
-		config(std::string config_filename){
-			filename = config_filename;
+		config(){
 			str_null = "";
-			char line[1024];
-			std::string str;
-
-			std::ifstream config_file(config_filename);
-
-			//std::cout<<"gou test"<< std::endl;
-			while(config_file.getline(line, sizeof(line))){
-				str = line;
-				
-				if ( str !="" && str.find_first_of('#') == std::string::npos){
-					std::istringstream record(line);
-					record >> conf[0].value;
-					//std::cout<< conf[0].value << std::endl;
-
-					record >> conf[1].value;
-					record >> conf[2].value;
-					record >> conf[3].value;
-					break;
-				}
-			}
-			config_file.close();
 		}
-			
+		config(std::string config_filename){
+			open_fill(config_filename);
+		}
+		bool open_fill(std::string config_filename){
+			filename = config_filename;
+            str_null = "";
+            char line[1024];
+            std::string str;
+
+            std::ifstream config_file(filename);
+			if (!config_file){
+				return false;
+			}
+
+            //std::cout<<"gou test"<< std::endl;
+            while(config_file.getline(line, sizeof(line))){
+                str = line;
+
+                if ( str !="" && str.find_first_of('#') == std::string::npos){
+                    std::istringstream record(line);
+                    record >> conf[0].value;
+                    //std::cout<< conf[0].value << std::endl;
+
+                    record >> conf[1].value;
+                    record >> conf[2].value;
+                    record >> conf[3].value;
+                    break;
+                }
+            }
+            config_file.close();
+			return true;
+		}	
 		//~config(){
 		//	if (config_file){
 		//		config_file.close();
