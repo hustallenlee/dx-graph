@@ -87,12 +87,15 @@ namespace format {
 			format::edge_t edge;
 			std::map<vertex_t, vertex_t> mapper;
 			vertex_t i=0;
-
+			std::cout << sizeof(edge) <<std::endl;
 			while(snap_file.getline(line,sizeof(line))){
 				std::istringstream record(line);
 				record >> edge.src;
 				record >> edge.dst;
+				#ifdef WEIGHT_EDGE
 				edge.value = generate_weight();
+				#endif
+				
 				auto map_ins = mapper.insert( std::pair <vertex_t, vertex_t>(edge.src, i));
 				if (map_ins.second == true){
 					map_file << i <<" " << edge.src << std::endl;

@@ -9,6 +9,7 @@
 #include <sstream>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 //#include <bitset>
 //#define COMPACT_GRAPH
 
@@ -31,9 +32,6 @@ int main(int argc,char * argv[]){
 	int type=1;
 	char buf[30];
 	array init_array;
-	init_array.degree = 0;
-	init_array.res[0] = 0.0;
-	init_array.res[1] = 0.0;
 
 	record.clear();
 	record << argv[1];
@@ -56,34 +54,39 @@ int main(int argc,char * argv[]){
 	record.clear();
 	record<< conf["type"];
 	record>> type;
+	
+	format::weight_t init_weight = 0.15 / vertex_num;
+	init_array.degree = 0;
+	init_array.res[0] = init_weight;
+	init_array.res[1] = init_weight;
 
 	std::vector<bool> update_bitset(vertex_num, false);
 	std::vector<array > aux_array(vertex_num, init_array); //auxiliary array
 	int	edge_size = sizeof(format::edge_t);
 	int flag = 1;   //indicate which is the old
 	format::edge_t edge;
-	int update_num = 0;
-	
+	int updated_num = 0;
 
 	
 	dx_lib::buffer disk_io(1000*1000*50);
-	std::cout<<"here1 "<<times<<std::endl;	
+	//std::cout<<"here1 "<<times<<std::endl;	
 
 	disk_io.start_write(filename);
+	
+	LOG_TRIVIAL(info)<<"initialize ... ";
 	while( !disk_io.is_over()){			//the first scan, get every vertice's degree
 		disk_io.read(buf,edge_size);
 		format::format_utils::read_edge(buf, edge);
 	//std::cout<<"test "<<sizeof(edge)<<std::endl;	
 		aux_array[edge.src].degree += 1;
 	//std::cout<<"here2"<<std::endl;	
-		aux_array[edge.src].res[flag] = edge.value;
 		
 	}
 	disk_io.write_join();
 		
 	while (times){
+		LOG_TRIVIAL(info)<<"remain "<<times<<" iterator(s)";
 		disk_io.start_write(filename);
-		std::cout<<"here2"<<times<<std::endl;	
 		while( !disk_io.is_over()){			//the second scan, scatter and gather phase
 			//std::cout<<"test"<<times<<std::endl;	
 			disk_io.read(buf,edge_size);
@@ -94,29 +97,32 @@ int main(int argc,char * argv[]){
 				aux_array[edge.dst].res[1-flag] += 		//new
 		 		0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
 			}
-			//else{ //else copy the pagerank value to the new res
-			//	aux_array[edge.dst].res[1-flag] = aux_array[edge.dst].res[flag];
-			//}
+			
 		}
-
 		disk_io.write_join();
+
 		int pos = 0;
-		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++, pos++){
+		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
+			pos = iter - aux_array.begin();
 			if ( update_bitset[ pos ] == false ){ 		//updated
-				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.0001){ //convergence
+				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.00000001){ //convergence
 					update_bitset[ pos ] = true;
-					//update_num ++;
+					updated_num ++;
 				}
 				iter->res[flag] = iter->res[1-flag]; //update the old
 			}
+			iter->res[1-flag] = init_weight;
 		}
-		auto iter2 = update_bitset.begin();
-		for (iter2 = update_bitset.begin(); iter2 != update_bitset.end(); iter2++){
-			if ((*iter2) == false){
-				break;
-			}
-		}
-		if ( iter2 == update_bitset.end() ){ //all bits are 1
+		//auto iter2 = update_bitset.begin();
+		//for (iter2 = update_bitset.begin(); iter2 != update_bitset.end(); iter2++){
+		//	if ((*iter2) == false){
+		//		break;
+		//	}
+		//}
+		//if ( iter2 == update_bitset.end() ){ //all bits are 1
+		LOG_TRIVIAL(info)<<vertex_num - updated_num<<" / "<<vertex_num;
+		if ( updated_num == vertex_num ){ //all bits are 1
+			LOG_TRIVIAL(info) << "convergence and exit";
 			break;
 		}
 		times --;
@@ -128,6 +134,8 @@ void output(std::vector<array > &aux_array, int flag){
 	std::ofstream out("output.csv", std::ios::out);
 	auto begin = aux_array.begin();
 	for (auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
-		out<<iter -begin<<" "<<iter -> res[flag]<<std::endl;
+		out << iter -begin<<" " 
+			<<std::fixed<<std::setprecision(16)
+			<<iter -> res[flag]<<std::endl;
 	}
 }

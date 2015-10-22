@@ -21,12 +21,14 @@
 namespace format{
 	#ifdef COMPACT_GRAPH
 	typedef unsigned int vertex_t;
-	typedef float weight_t;
+	typedef double weight_t;
 	#else
 	typedef unsigned long vertex_t;
 	typedef double weight_t;
 	#endif
 	
+	#ifdef WEIGHT_EDGE	
+
 	#pragma pack(1)
 	typedef struct {
 		vertex_t src;
@@ -34,5 +36,14 @@ namespace format{
 		weight_t value;
 	}edge_t;
 	#pragma pack()
+
+	#else
+	#pragma pack(1)
+	typedef struct {
+		vertex_t src;
+		vertex_t dst;
+	}edge_t;
+	#pragma pack()
+	#endif
 }
 #endif

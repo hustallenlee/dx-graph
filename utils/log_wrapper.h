@@ -21,6 +21,9 @@
 #include <string>
 #include <sstream>
 #include <thread>
+#include <chrono>
+#include <ctime>
+
 enum log_state {
 	fatal = 0,
 	error = 1,
@@ -45,9 +48,16 @@ public:
 		state<< value;
 		return *this;
 	}
-	
+	const std::string get_current_time(){
+		auto now = std::chrono::system_clock::now();
+		std::time_t t = std::chrono::system_clock::to_time_t(now);
+		std::string ts = std::ctime(&t);
+		ts.resize(ts.size()-1);
+		return ts;
+	}	
 	~LOG_TRIVIAL(){
 		std::stringstream final;
+		final << get_current_time();
 		final << " < " <<log_header[level] <<" ";
 		final << std::this_thread::get_id() <<"> ";
 		final << state.str() <<std::endl;

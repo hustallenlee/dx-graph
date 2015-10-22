@@ -176,13 +176,13 @@ namespace dx_lib {
 					
 				}
 				if(infile.eof()){
-					LOG_TRIVIAL(info)<<"file "<<filename << " has being written into the buffer";
+					//LOG_TRIVIAL(info)<<"file "<<filename << " has being written into the buffer";
 					boost::mutex::scoped_lock lock(buffer_mutex);
 					over = 1;
 				}
 				
 			}
-			LOG_TRIVIAL(info)<< "write thread has finished total write "<< write_count << " bytes";
+			//LOG_TRIVIAL(info)<< "write thread has finished total write "<< write_count << " bytes";
 			return write_count;
 		}
 		
@@ -204,7 +204,7 @@ namespace dx_lib {
 		void start_write(std::string filename){
 			reset();
 			auto f = boost::bind(&buffer::write, this, filename);
-			LOG_TRIVIAL(info) << "starting write the buffer using file "<< filename;
+			//LOG_TRIVIAL(info) << "starting write the buffer using file "<< filename;
 			thrd = new boost::thread(f);
 		}
 

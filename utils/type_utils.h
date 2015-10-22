@@ -40,7 +40,9 @@ namespace format{
 				edge = (edge_t *)buf;
 				src = edge->src;
 				dst = edge->dst;
+				#ifdef WEIGHT_EDGE
 				value = edge->value;
+				#endif
 			}
 			static void read_edge(const char * buf,
 									edge_t & edge)
@@ -57,7 +59,9 @@ namespace format{
 			{
 				*(vertex_t *)buffer = src;
 				*(vertex_t *)(buffer + sizeof(vertex_t)) = dst;
+				#ifdef WEIGHT_EDGE
 				*(weight_t *)(buffer + 2*sizeof(vertex_t))= value;
+				#endif
 			}
 			
 			static void write_edge(char *buffer,
