@@ -30,7 +30,7 @@ int main(int argc,char * argv[]){
 	int vertex_num = 0;
 	int edge_num = 0;
 	int type=1;
-	char buf[10000];
+	char buf[1000000];
 	array init_array;
 
 	record.clear();
@@ -77,7 +77,7 @@ int main(int argc,char * argv[]){
 
 	disk_io.start_write(filename);
 	
-	int edge_num_once = 1000;      //read 1000 edges once a time
+	int edge_num_once = 100000;      //read 1000 edges once a time
 	int byte_num_once = edge_num_once * edge_size;
 	int readed_bytes = 0;
 
@@ -109,8 +109,9 @@ int main(int argc,char * argv[]){
 
 		while( !disk_io.is_over()){			//the second scan, scatter and gather phase
 			//std::cout<<"test"<<times<<std::endl;	
-			readed_bytes = disk_io.read(buf,edge_size);
+			readed_bytes = disk_io.read(buf, byte_num_once);
 			int i = readed_bytes;
+		//LOG_TRIVIAL(info)<<"once a time "<<readed_bytes;
 			while (i){
 				format::format_utils::read_edge(buf + readed_bytes -i , edge);	
 			
@@ -124,7 +125,7 @@ int main(int argc,char * argv[]){
 			}
 		}
 		disk_io.write_join();
-		std::cout<<"test "<<std::endl;
+		LOG_TRIVIAL(info)<<"test ";
 		
 		int pos = 0;
 		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
