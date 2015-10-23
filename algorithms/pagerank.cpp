@@ -30,7 +30,7 @@ int main(int argc,char * argv[]){
 	int vertex_num = 0;
 	int edge_num = 0;
 	int type=1;
-	char buf[30];
+	char buf[10000];
 	array init_array;
 
 	record.clear();
@@ -55,6 +55,10 @@ int main(int argc,char * argv[]){
 	record<< conf["type"];
 	record>> type;
 	
+	record.clear();
+	record<< conf["edges"];
+	record>> edge_num;
+	
 	format::weight_t init_weight = 0.15 / vertex_num;
 	init_array.degree = 0;
 	init_array.res[0] = init_weight;
@@ -73,34 +77,55 @@ int main(int argc,char * argv[]){
 
 	disk_io.start_write(filename);
 	
+	int edge_num_once = 1000;      //read 1000 edges once a time
+	int byte_num_once = edge_num_once * edge_size;
+	int readed_bytes = 0;
+
 	LOG_TRIVIAL(info)<<"initialize ... ";
 	while( !disk_io.is_over()){			//the first scan, get every vertice's degree
-		disk_io.read(buf,edge_size);
-		format::format_utils::read_edge(buf, edge);
-	//std::cout<<"test "<<sizeof(edge)<<std::endl;	
-		aux_array[edge.src].degree += 1;
-	//std::cout<<"here2"<<std::endl;	
+		
+		readed_bytes = disk_io.read(buf, byte_num_once);
+	//	std::cout<<"readed "<< readed_bytes<<std::endl;
+		
+		int i = readed_bytes;
+		while( i ){ 
+			format::format_utils::read_edge(buf + readed_bytes - i, edge);
+		
+			//std::cout<<"test "<<sizeof(edge)<<std::endl;	
+			aux_array[edge.src].degree += 1;
+			i -= edge_size;
+	//	std::cout<<"test "<< i<<std::endl;
+			//std::cout<<"here2"<<std::endl;	
+		}
 		
 	}
 	disk_io.write_join();
+	std::cout<<"after initialize "<<std::endl;
 		
 	while (times){
 		LOG_TRIVIAL(info)<<"remain "<<times<<" iterator(s)";
+		int readed_edges = 0;
 		disk_io.start_write(filename);
+
 		while( !disk_io.is_over()){			//the second scan, scatter and gather phase
 			//std::cout<<"test"<<times<<std::endl;	
-			disk_io.read(buf,edge_size);
-			format::format_utils::read_edge(buf, edge);	
+			readed_bytes = disk_io.read(buf,edge_size);
+			int i = readed_bytes;
+			while (i){
+				format::format_utils::read_edge(buf + readed_bytes -i , edge);	
 			
-			if (update_bitset[ edge.dst ] == false ){	
-				//if the vertice is not converged, then update
-				aux_array[edge.dst].res[1-flag] += 		//new
-		 		0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
+				if (update_bitset[ edge.dst ] == false ){	
+					//if the vertice is not converged, then update
+					aux_array[edge.dst].res[1-flag] += 		//new
+		 			0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
+				}
+
+				i -= edge_size;
 			}
-			
 		}
 		disk_io.write_join();
-
+		std::cout<<"test "<<std::endl;
+		
 		int pos = 0;
 		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
 			pos = iter - aux_array.begin();

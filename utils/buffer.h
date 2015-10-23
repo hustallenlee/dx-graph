@@ -167,8 +167,10 @@ namespace dx_lib {
 				//std::cout<<"total "<<total<<std::endl;
 				//std::cout<<"write "<<buf<<std::endl;
 				int temp = total;
+				
 				while(temp){
 					boost::mutex::scoped_lock lock(buffer_mutex);
+		//		std::cout<<"total "<<total<<"front rear "<<front <<" "<< rear <<std::endl;
 					int write_num = enqueue(buf + total - temp, temp);
 					temp = temp - write_num;
 					write_count += write_num;
@@ -193,6 +195,9 @@ namespace dx_lib {
 				boost::mutex::scoped_lock lock(buffer_mutex);
 				int read_num = dequeue(buf + total - temp, temp);
 				temp = temp - read_num; 
+				//if (read_num == 0){
+				//	std::cout<<"temp "<<n- temp<<" over "<< over << " empty "<<is_empty()<<std::endl;
+				//}
 				read_count += read_num; 
 				if (over == 1 && is_empty())
 					break;
