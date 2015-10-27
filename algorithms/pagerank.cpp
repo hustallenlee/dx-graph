@@ -125,13 +125,13 @@ int main(int argc,char * argv[]){
 			}
 		}
 		disk_io.write_join();
-		LOG_TRIVIAL(info)<<"test ";
+		//LOG_TRIVIAL(info)<<"test ";
 		
 		int pos = 0;
 		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
 			pos = iter - aux_array.begin();
 			if ( update_bitset[ pos ] == false ){ 		//updated
-				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.00000001){ //convergence
+				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.000000001){ //convergence
 					update_bitset[ pos ] = true;
 					updated_num ++;
 				}
