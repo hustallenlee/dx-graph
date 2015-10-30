@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _TYPE_utils_
-#define _TYPE_utils_
+#ifndef _TYPE_UTILS_
+#define _TYPE_UTILS_
 #include <iostream>
 #include <string>
 #include <cstring>
