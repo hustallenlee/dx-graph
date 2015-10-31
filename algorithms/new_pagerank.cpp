@@ -72,14 +72,20 @@ public:
 		if (super_step() !=0){
 			int pos = 0;
 			for (auto iter = ua.begin(); iter != ua.end(); iter ++){
-				pos = iter - ua.begin();
-				temp =0.15/init_weight + 0.85 * (iter->update_value) ;
 				if ((*update_bitset)[ pos ] == false){
+					pos = iter - ua.begin();
+					temp = init_weight + 0.85 * (iter->update_value) ;
 					if (fabs(temp - (*aux_array)[pos].res ) < 0.000000001){
 						(*update_bitset)[pos] = true;
 						updated_num ++ ;
+						
+					}
+					else{
+						(*aux_array)[pos].res = temp;
 					}
 				}
+				iter -> update_value = 0.0;
+					
 			}
 			LOG_TRIVIAL(info)<<vertex_num - updated_num<<" / "<<vertex_num;
         	if ( updated_num == vertex_num ){ //all bits are 1
@@ -98,6 +104,12 @@ public:
             	<<std::fixed<<std::setprecision(16)
             	<<iter -> res<<std::endl;
     	}
+    	/*auto begin = (*aux_array).begin();
+    	for (auto iter = begin; iter != (*aux_array).end(); iter++){
+        	out << iter -begin<<" "
+            	<<iter -> degree<<std::endl;
+    	}*/
+		
 	}       
 };
 
