@@ -16,21 +16,22 @@ typedef struct{
    format::vertex_t label;
 }array;
 
-class wcc: public engine<format::vertex_t >{
+class bfs: public engine<format::vertex_t >{
 private:
-	//std::vector<bool> *update_bitset;
+	std::vector<bool> *update_bitset;
     std::vector<array > *aux_array; //auxiliary array
     int edge_size;
+	format::vertex_t root;
     //int flag;   //indicate which is the old
 	//format::weight_t temp;
 public:
-	wcc(std::string fn, int mloop): engine(fn, mloop){
+	bfs(std::string fn, int mloop, int rt): engine(fn, mloop){
 
 
 		update_bitset = new std::vector<bool>;
-    	aux_array = new std::vector<array>(vertex_num); //auxiliary array
+    	aux_array = new std::vector<array>(vertex_num, {UINT_MAX}); //auxiliary array
     	edge_size = sizeof(format::edge_t);
-	
+		root = rt;
 		ua.resize(vertex_num, UINT_MAX);
 		
 		//for (auto iter = aux_array->begin(), iter != aux_array->end(); iter ++){
@@ -38,7 +39,7 @@ public:
 		//}
 	}
 
-	~ wcc(){
+	~ bfs(){
 		delete update_bitset;
 		delete aux_array;
 	}
@@ -52,9 +53,7 @@ public:
 
 		if (super_step() == 0){//set every vertex's id
 
-			for (auto iter = aux_array->begin(); iter != aux_array->end(); iter ++){
-				iter->label = iter - aux_array->begin();
-			}
+			(*aux_array)[root].label = 1;			
 		}
 		while( get_next_edge(edge) ){
 			src = (*aux_array)[edge.src].label;
@@ -74,9 +73,11 @@ public:
 
 		for (auto iter = ua.begin(); iter != ua.end(); iter ++){
 			pos = iter - start;
-			if ( (*aux_array)[pos].label > (*iter) ){
-				(*aux_array)[pos].label = (*iter);
-				updated_num ++;
+			if ( (*iter) != UINT_MAX ){
+				if (  (*aux_array)[pos].label  > ( (*iter) + 1) ){
+						(*aux_array)[pos].label = (*iter) + 1;
+						updated_num ++;
+				}
 			}
 		}
 		LOG_TRIVIAL(info)<<updated_num<<" / "<<vertex_num;
@@ -107,19 +108,24 @@ public:
 };
 
 int main(int argc, char * argv[]){
-	 if(argc != 2){
-        std::cout<<"Usage: execute_file filename "
+	 if(argc != 3){
+        std::cout<<"Usage: execute_file filename root "
                     << std::endl;
         return 0;
     }
 	std::stringstream record;
 	std::string filename;
+	format::vertex_t root;
 
 	record.clear();
 	record<< argv[1];
 	record>> filename;
 	
-	wcc cc(filename,INT_MAX);
-	cc.run();
+	record.clear();
+	record<< argv[2];
+	record>> root;
+	
+	bfs bs(filename,INT_MAX, root);
+	bs.run();
 	return 0;
 }
