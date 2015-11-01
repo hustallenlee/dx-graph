@@ -37,7 +37,7 @@ public:
 		update_bitset = new std::vector<bool>(vertex_num, false);
     	aux_array = new std::vector<array>(vertex_num, init_array); //auxiliary array
     	edge_size = sizeof(format::edge_t);
-
+		
 		ua.resize(vertex_num,{0.0});
     	flag = 1;   //indicate which is the old
 	}
