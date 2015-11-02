@@ -3,6 +3,7 @@
 #include "../utils/log_wrapper.h"
 #include "../utils/types.h"
 #include "../utils/type_utils.h"
+#include "../core/engine.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -10,158 +11,127 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
-//#include <bitset>
-//#define COMPACT_GRAPH
 
 typedef struct{
-	int degree;
-	format::weight_t res[2];
+    int degree;
+    format::weight_t res;
 }array;
-void output(std::vector<array > &aux_array,int flag);
-int main(int argc,char * argv[]){
-	if(argc != 3){
-		std::cout<<"Usage: execute_file filename iterator_times "
-					<< std::endl;
-		return 0;
-	}
-	std::stringstream record;
-	std::string filename;
-	int times = 0;
-	int vertex_num = 0;
-	int edge_num = 0;
-	int type=1;
+
+class pagerank: public engine<update_t >{
+private:
 	char buf[1000000];
 	array init_array;
+	format::weight_t init_weight;
+	std::vector<bool> *update_bitset;
+    std::vector<array > *aux_array; //auxiliary array
+    int edge_size;
+    int flag;   //indicate which is the old
+	format::weight_t temp;
+public:
+	pagerank(std::string fn, int mloop): engine(fn, mloop){
 
-	record.clear();
-	record << argv[1];
-	record >> filename;	
-	
-	record.clear();
-	record << argv[2];
-	record >> times;
+		init_weight = 0.15 / vertex_num;
+		init_array.degree = 0;
+    	init_array.res = init_weight;
 
-	format::config conf;
-	if ( !conf.open_fill(filename + ".ini")){
-		LOG_TRIVIAL(fatal)<< "can not open config file "
-							<<filename + ".ini";
-		return 0;
+		update_bitset = new std::vector<bool>(vertex_num, false);
+    	aux_array = new std::vector<array>(vertex_num, init_array); //auxiliary array
+    	edge_size = sizeof(format::edge_t);
+		
+		ua.resize(vertex_num,{0.0});
+    	flag = 1;   //indicate which is the old
 	}
-	record.clear();
-	record<< conf["vertices"];
-	record>> vertex_num;	
 
-	record.clear();
-	record<< conf["type"];
-	record>> type;
-	
-	record.clear();
-	record<< conf["edges"];
-	record>> edge_num;
-	
-	format::weight_t init_weight = 0.15 / vertex_num;
-	init_array.degree = 0;
-	init_array.res[0] = init_weight;
-	init_array.res[1] = init_weight;
-
-	std::vector<bool> update_bitset(vertex_num, false);
-	std::vector<array > aux_array(vertex_num, init_array); //auxiliary array
-	int	edge_size = sizeof(format::edge_t);
-	int flag = 1;   //indicate which is the old
-	format::edge_t edge;
-	int updated_num = 0;
-
-	
-	dx_lib::buffer disk_io(1000*1000*50);
-	//std::cout<<"here1 "<<times<<std::endl;	
-
-	disk_io.start_write(filename);
-	
-	int edge_num_once = 100000;      //read 1000 edges once a time
-	int byte_num_once = edge_num_once * edge_size;
-	int readed_bytes = 0;
-
-	LOG_TRIVIAL(info)<<"initialize ... ";
-	while( !disk_io.is_over()){			//the first scan, get every vertice's degree
-		
-		readed_bytes = disk_io.read(buf, byte_num_once);
-	//	std::cout<<"readed "<< readed_bytes<<std::endl;
-		
-		int i = readed_bytes;
-		while( i ){ 
-			format::format_utils::read_edge(buf + readed_bytes - i, edge);
-		
-			//std::cout<<"test "<<sizeof(edge)<<std::endl;	
-			aux_array[edge.src].degree += 1;
-			i -= edge_size;
-	//	std::cout<<"test "<< i<<std::endl;
-			//std::cout<<"here2"<<std::endl;	
-		}
-		
+	~ pagerank(){
+		delete update_bitset;
+		delete aux_array;
 	}
-	disk_io.write_join();
-	std::cout<<"after initialize "<<std::endl;
-		
-	while (times){
-		LOG_TRIVIAL(info)<<"remain "<<times<<" iterator(s)";
-		int readed_edges = 0;
-		disk_io.start_write(filename);
-
-		while( !disk_io.is_over()){			//the second scan, scatter and gather phase
-			//std::cout<<"test"<<times<<std::endl;	
-			readed_bytes = disk_io.read(buf, byte_num_once);
-			int i = readed_bytes;
-		//LOG_TRIVIAL(info)<<"once a time "<<readed_bytes;
-			while (i){
-				format::format_utils::read_edge(buf + readed_bytes -i , edge);	
-			
-				if (update_bitset[ edge.dst ] == false ){	
-					//if the vertice is not converged, then update
-					aux_array[edge.dst].res[1-flag] += 		//new
-		 			0.85 * aux_array[edge.src].res[flag] / aux_array[edge.src].degree;
-				}
-
-				i -= edge_size;
+	void scatter() {
+		//init_read();
+		LOG_TRIVIAL(info)<<"scatter ...";
+		format::edge_t edge;
+		if (super_step() == 0){//get every vertex's degree
+			while( get_next_edge(edge) ){
+				(*aux_array)[edge.src].degree += 1;
+				
 			}
 		}
-		disk_io.write_join();
-		//LOG_TRIVIAL(info)<<"test ";
-		
-		int pos = 0;
-		for(auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
-			pos = iter - aux_array.begin();
-			if ( update_bitset[ pos ] == false ){ 		//updated
-				if ( fabs(iter->res[flag] - iter->res[1-flag]) <0.000000001){ //convergence
-					update_bitset[ pos ] = true;
-					updated_num ++;
+		else{
+			while( get_next_edge(edge) ){
+				if ((*update_bitset)[edge.dst ] == false){
+					ua[edge.dst].update_value +=
+                    	(*aux_array)[edge.src].res / (*aux_array)[edge.src].degree;
+
 				}
-				iter->res[flag] = iter->res[1-flag]; //update the old
 			}
-			iter->res[1-flag] = init_weight;
 		}
-		//auto iter2 = update_bitset.begin();
-		//for (iter2 = update_bitset.begin(); iter2 != update_bitset.end(); iter2++){
-		//	if ((*iter2) == false){
-		//		break;
-		//	}
-		//}
-		//if ( iter2 == update_bitset.end() ){ //all bits are 1
-		LOG_TRIVIAL(info)<<vertex_num - updated_num<<" / "<<vertex_num;
-		if ( updated_num == vertex_num ){ //all bits are 1
-			LOG_TRIVIAL(info) << "convergence and exit";
-			break;
+	}
+
+	bool gatter(){
+		LOG_TRIVIAL(info)<<"gatter ...";
+		if (super_step() !=0){
+			int pos = 0;
+			for (auto iter = ua.begin(); iter != ua.end(); iter ++){
+				if ((*update_bitset)[ pos ] == false){
+					pos = iter - ua.begin();
+					temp = init_weight + 0.85 * (iter->update_value) ;
+					if (fabs(temp - (*aux_array)[pos].res ) < 0.000000001){
+						(*update_bitset)[pos] = true;
+						updated_num ++ ;
+						
+					}
+					else{
+						(*aux_array)[pos].res = temp;
+					}
+				}
+				iter -> update_value = 0.0;
+					
+			}
+			LOG_TRIVIAL(info)<<vertex_num - updated_num<<" / "<<vertex_num;
+        	if ( updated_num == vertex_num ){ //all bits are 1
+            	LOG_TRIVIAL(info) << "convergence and exit";
+            	return true;
+        	}
+			return false;
 		}
-		times --;
+		return false;
 	}
-	output(aux_array, 1);
-	
-}
-void output(std::vector<array > &aux_array, int flag){
-	std::ofstream out("output.csv", std::ios::out);
-	auto begin = aux_array.begin();
-	for (auto iter = aux_array.begin(); iter != aux_array.end(); iter++){
-		out << iter -begin<<" " 
-			<<std::fixed<<std::setprecision(16)
-			<<iter -> res[flag]<<std::endl;
-	}
+	void output(){
+    	std::ofstream out("output.csv", std::ios::out);
+    	auto begin = (*aux_array).begin();
+    	for (auto iter = begin; iter != (*aux_array).end(); iter++){
+        	out << iter -begin<<" "
+            	<<std::fixed<<std::setprecision(16)
+            	<<iter -> res<<std::endl;
+    	}
+    	/*auto begin = (*aux_array).begin();
+    	for (auto iter = begin; iter != (*aux_array).end(); iter++){
+        	out << iter -begin<<" "
+            	<<iter -> degree<<std::endl;
+    	}*/
+		
+	}       
+};
+
+int main(int argc, char * argv[]){
+	 if(argc != 3){
+        std::cout<<"Usage: execute_file filename iterator_times "
+                    << std::endl;
+        return 0;
+    }
+	std::stringstream record;
+	std::string filename;
+	int niter;
+
+	record.clear();
+	record<< argv[1];
+	record>> filename;
+
+	record.clear();
+	record<< argv[2];
+	record>> niter;
+
+	pagerank pr(filename, niter);
+	pr.run();
+	return 0;
 }

@@ -27,7 +27,7 @@ public:
 	wcc(std::string fn, int mloop): engine(fn, mloop){
 
 
-		update_bitset = new std::vector<bool>;
+		//update_bitset = new std::vector<bool>;
     	aux_array = new std::vector<array>(vertex_num); //auxiliary array
     	edge_size = sizeof(format::edge_t);
 	
@@ -39,7 +39,7 @@ public:
 	}
 
 	~ wcc(){
-		delete update_bitset;
+		//delete update_bitset;
 		delete aux_array;
 	}
 	void scatter() {

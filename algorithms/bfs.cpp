@@ -22,8 +22,6 @@ private:
     std::vector<array > *aux_array; //auxiliary array
     int edge_size;
 	format::vertex_t root;
-    //int flag;   //indicate which is the old
-	//format::weight_t temp;
 public:
 	bfs(std::string fn, int mloop, int rt): engine(fn, mloop){
 
@@ -34,9 +32,6 @@ public:
 		root = rt;
 		ua.resize(vertex_num, UINT_MAX);
 		
-		//for (auto iter = aux_array->begin(), iter != aux_array->end(); iter ++){
-		//	iter->label = iter -aux_array->begin();
-		//}
 	}
 
 	~ bfs(){
