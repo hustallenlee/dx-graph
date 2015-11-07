@@ -35,7 +35,7 @@ namespace format {
 		std::ofstream map_file;
 		std::ofstream config_file;
 		int vertex_num;
-		int edge_num;
+		long edge_num;
 	public:
 		format_convert(std::string fn):filename(fn){
 			snap_file.open(filename, std::ios::in);

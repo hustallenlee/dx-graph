@@ -28,15 +28,17 @@
 #define BUFFERSIZE 1000*1000*100
 
 typedef char BYTE;
+
 namespace dx_lib {
 
 	
 	boost::mutex buffer_mutex;
 	//缓冲区类
+	template <class elem_type>
 	class buffer {
 	private:
 
-		BYTE *data;
+		elem_type *data;
 		int front;
 		int rear;
 		int len;
@@ -45,30 +47,32 @@ namespace dx_lib {
 		int write_count;
 		boost::thread *thrd;
 		//boost::mutex over_flag_mutex;
-
+		int elem_size;
 	public:
 		buffer() {
 			//std::cout<<"gou 1"<<std::endl;
 			len = BUFFERSIZE;
-			data = new BYTE[BUFFERSIZE]();
+			data = new elem_type[BUFFERSIZE]();
 			front = 0;
 			rear = 0;
 			over = 0;
 			read_count = 0;
 			write_count = 0;
 			thrd = NULL;
+			elem_size = sizeof(elem_type);
 		}
 
 		buffer(unsigned int size){
 			//std::cout<<"gou 2"<<std::endl;
 			len = size;
-			data = new BYTE[size]();
+			data = new elem_type[size]();
 			front = 0;
 			rear = 0;
 			over = 0;
 			read_count = 0;
 			write_count = 0;
 			thrd = NULL;
+			elem_size = sizeof(elem_type);
 		}
 	
 		~buffer(){
@@ -88,17 +92,17 @@ namespace dx_lib {
 		//full states
 		bool is_full(){
 			
-			return ((rear+1)%len == front);
+			return ((rear + 1) % len == front);
 		}
 
-		friend std::ostream &operator<< (std::ostream &os, const buffer & buf){
+		/*friend std::ostream &operator<< (std::ostream &os, const buffer & buf){
 			boost::mutex::scoped_lock lock(buffer_mutex);
 			std::cout<<buf.front<<" "<<buf.rear<<std::endl;
 			int i=0;
 			for (i = buf.front; i != buf.rear; i = (i+1)%(buf.len))
 				std::cout<<buf.data[i]<<" ";
 			std::cout<<std::endl;
-		}
+		}*/
 		
 		//empty states
 		bool is_empty(){
@@ -106,7 +110,7 @@ namespace dx_lib {
 		}		
 			
 		//enqueue the buffer
-		int enqueue(BYTE *buf,int n){
+		int enqueue(elem_type *buf,int n){
 			int in_num = n;
 			
 			if ( is_full() ){
@@ -120,12 +124,12 @@ namespace dx_lib {
 			}
 			
 			if ( (rear + in_num ) <= len){
-				memcpy(data + rear, buf ,in_num);
+				memcpy((void * )(data + rear), (void *)buf ,in_num * elem_size);
 			}
 			else{
 				int temp_num = len - rear;
-				memcpy(data + rear, buf, temp_num);
-				memcpy(data, buf + temp_num, in_num - temp_num);
+				memcpy((void *) (data + rear),(void *)buf, temp_num * elem_size );
+				memcpy((void *)data, (void *)(buf + temp_num), (in_num - temp_num) * elem_size );
 			}
 			
 			rear = (rear + in_num )%len;
@@ -133,7 +137,7 @@ namespace dx_lib {
 		}
 
 		//dequeue the buffer
-		int dequeue(BYTE * buf, int n){
+		int dequeue(elem_type * buf, int n){
 			int out_num = n ;
 			if(is_empty()){
 				return 0;
@@ -146,12 +150,12 @@ namespace dx_lib {
 			}
 			
 			if ( (front + out_num) <= len){
-				memcpy(buf, data + front, out_num );
+				memcpy((void *)buf, (void *)(data + front), out_num * elem_size);
 			}
 			else{
 				int temp_num = len - front;
-				memcpy(buf, data + front, temp_num);
-				memcpy(buf + temp_num, data, out_num - temp_num);
+				memcpy((void *)buf, (void *) (data + front), temp_num * elem_size);
+				memcpy((void *)(buf + temp_num), (void * )data, (out_num - temp_num) * elem_size);
 			}
 			front = (front + out_num) % len;
 			return out_num;
@@ -161,9 +165,9 @@ namespace dx_lib {
 		int write( std::string filename ){
 			std::ifstream infile( filename,std::ios::in | std::ios::binary);
 			const int size = 100;
-			BYTE buf[size];
+			elem_type buf[size];
 			int total;
-			while((total = infile.read(buf, sizeof(BYTE) * size).gcount())){
+			while((total = infile.read((char *)buf, elem_size * size).gcount())){
 				//std::cout<<"total "<<total<<std::endl;
 				//std::cout<<"write "<<buf<<std::endl;
 				int temp = total;
@@ -188,7 +192,7 @@ namespace dx_lib {
 			return write_count;
 		}
 		
-		int read(BYTE * buf, int n){
+		int read(elem_type * buf, int n){
 			int total = n;
 			int temp = n;
 			while(temp){

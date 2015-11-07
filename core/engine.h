@@ -16,7 +16,7 @@
 #include <cstring>
 #define DISK_IO_SIZE 50000000
 typedef struct{
-	//format::vertex_t id;
+//	format::vertex_t id;
 	format::weight_t update_value;
 }update_t;
 
@@ -41,7 +41,7 @@ protected:
 	int step_counter;
 	//std::string config_file;
 	std::string filename;
-	dx_lib::buffer *disk_io;
+	dx_lib::buffer<BYTE> *disk_io;
 	int vertex_num;
 	int edge_num;
 	int type;
@@ -53,7 +53,7 @@ protected:
 	int readed_bytes;
 	int updated_num;
 	update_array<update_type > ua;
-
+	//update_type update_buf[200];
 public:
 	
 	engine (std::string fn, int mloop){
@@ -88,7 +88,7 @@ public:
 		record.clear();
 		record<< conf["edges"];
 		record>> edge_num;
-		disk_io = new dx_lib::buffer(DISK_IO_SIZE);
+		disk_io = new dx_lib::buffer<BYTE>(DISK_IO_SIZE);
 		
 	}
 	~ engine(){
