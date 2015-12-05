@@ -16,9 +16,14 @@ typedef struct{
    format::vertex_t label;
 }array;
 
-class bfs: public engine<format::vertex_t >{
+typedef struct{
+	format::vertex_t id;
+    format::vertex_t update_value;
+}update_t;
+
+class bfs: public engine<update_t >{
 private:
-	std::vector<bool> *update_bitset;
+	//std::vector<bool> *update_bitset;
     std::vector<array > *aux_array; //auxiliary array
     int edge_size;
 	format::vertex_t root;
@@ -26,16 +31,16 @@ public:
 	bfs(std::string fn, int mloop, int rt): engine(fn, mloop){
 
 
-		update_bitset = new std::vector<bool>;
-    	aux_array = new std::vector<array>(vertex_num, {UINT_MAX}); //auxiliary array
+		//update_bitset = new std::vector<bool>;
+    	aux_array = new std::vector<array>(vertex_num, {ULONG_MAX}); //auxiliary array
     	edge_size = sizeof(format::edge_t);
 		root = rt;
-		ua.resize(vertex_num, UINT_MAX);
+		//ua.resize(vertex_num, UINT_MAX);
 		
 	}
 
 	~ bfs(){
-		delete update_bitset;
+		//delete update_bitset;
 		delete aux_array;
 	}
 	void scatter() {
@@ -45,22 +50,26 @@ public:
 		format::vertex_t min;
 		format::vertex_t src;
 		format::vertex_t dst;
+		update_t update;
 
 		if (super_step() == 0){//set every vertex's id
 
-			(*aux_array)[root].label = 1;			
+			(*aux_array)[root].label = 0;			
 		}
 		while( get_next_edge(edge) ){
 			src = (*aux_array)[edge.src].label;
 			dst = (*aux_array)[edge.dst].label;
 				
+			if (src < dst){
+				update.id =  edge.dst + 1;
+			}
 			min = src < dst ? src : dst ;
 			ua[edge.src] = min < ua[edge.src] ? min : ua[edge.src]; 
 			ua[edge.dst] = min < ua[edge.dst] ? min : ua[edge.dst];
         }
 	}
 
-	bool gatter(){
+	bool gather(){
 		LOG_TRIVIAL(info)<<"gatter ...";
 		format::vertex_t updated_num = 0;
 		auto start = ua.begin();
