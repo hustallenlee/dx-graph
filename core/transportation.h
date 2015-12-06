@@ -71,11 +71,10 @@ public:
 		LOG_TRIVIAL(info)<<"next ip"<<n_ip;
 		LOG_TRIVIAL(info)<<"next port"<<n_port;
 		#endif
-		
-			
+		unsigned long offset = ifile.get_value<unsigned long>("machines","min_id");
 		net_io = new dx_lib::net_stream(p_ip, p_port, n_ip, n_port);
 		
-		fi = new dx_lib::filter<update_type >(update_buf, mul_update, net_io, judge);
+		fi = new dx_lib::filter<update_type >(update_buf, mul_update, net_io, judge, offset);
 		
 	}
 

@@ -2,6 +2,7 @@
 #define _ENGINE_
 #include "../utils/buffer.h"
 #include "../utils/config.h"
+#include "../utils/ini_config.h"
 #include "../utils/log_wrapper.h"
 #include "../utils/types.h"
 #include "../utils/type_utils.h"
@@ -116,7 +117,7 @@ protected:
 	boost::thread *gather_thrd;
 
 	bool gather_return;
-
+	unsigned long min_id;
 	
 public:
 	
@@ -177,6 +178,9 @@ public:
 		scatter_thrd = NULL;
 		gather_thrd = NULL;
 		gather_return = false;
+
+		format::ini_file ifile(filename + ".machine");
+		min_id = ifile.get_value<unsigned long>("machines", "min_id");
 		//scatter_return = false;
 	}
 	~ engine(){

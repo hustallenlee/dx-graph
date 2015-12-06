@@ -8,6 +8,7 @@
 #include "update_stream.h"
 #include "log_wrapper.h"
 #include "net_stream.h"
+#include "ini_config.h"
 #include "../core/judge.h"
 #define RECVSIZE 10000
 #define SENDSIZE 10000
@@ -68,17 +69,20 @@ namespace dx_lib{
 		//update_type update[SENDSIZE];
 		//int pointer;
 		boost::thread * thrd;
+		unsigned long offset;
 	public:
 		filter(update_stream<update_type>        *update_buffer,
 			   multi_update_stream<update_type>  *multi_write_update_buffer,
 			   net_stream                        *net_io,
-			   judgement<update_type>                *ju
+			   judgement<update_type>            *ju,
+				unsigned long					 ofse
 				){
 
 			update_buf = update_buffer;
 			multi_write_update_buf = multi_write_update_buffer;
 			ns = net_io;
 			judge = ju;
+			offset = ofse;
 			//pointer = 0;
 			thrd = NULL;
 		}
@@ -96,6 +100,7 @@ namespace dx_lib{
 			while(multi_write_update_buf->get_update( update )){
 
 				if (judge->test(update)){//true, add to the update buffer
+					update.id = update.id - offset;
 					update_buf->add_update(update);
 				}
 				else{

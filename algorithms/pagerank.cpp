@@ -120,7 +120,7 @@ public:
     	std::ofstream out("output.csv", std::ios::out);
     	auto begin = (*aux_array).begin();
     	for (auto iter = begin; iter != (*aux_array).end(); iter++){
-        	out << iter -begin<<" "
+        	out << iter -begin + min_id<<" "
             	<<std::fixed<<std::setprecision(16)
             	<<iter -> res<<std::endl;
     	}
