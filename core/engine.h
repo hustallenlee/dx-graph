@@ -181,6 +181,10 @@ public:
 
 		format::ini_file ifile(filename + ".machine");
 		min_id = ifile.get_value<unsigned long>("machines", "min_id");
+
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"offset "<<min_id;
+		#endif
 		//scatter_return = false;
 	}
 	~ engine(){

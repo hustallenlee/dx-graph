@@ -58,20 +58,25 @@ public:
 		std::string p_ip = ifile.get_value<std::string >("machines","p_ip");
 		int p_port = ifile.get_value<int >("machines","p_port");
 
-		#ifdef BEBUG
-		LOG_TRIVIAL(info)<<"previous ip"<<p_ip;
-		LOG_TRIVIAL(info)<<"previous port"<<p_port;
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"transportation: previous ip "<<p_ip;
+		LOG_TRIVIAL(info)<<"transportation: previous port "<<p_port;
 		#endif
 
 		//get the next ip and port
 		std::string n_ip = ifile.get_value<std::string >("machines","n_ip");
 		int n_port = ifile.get_value<int >("machines","n_port");
 		
-		#ifdef BEBUG
-		LOG_TRIVIAL(info)<<"next ip"<<n_ip;
-		LOG_TRIVIAL(info)<<"next port"<<n_port;
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"transportation: next ip "<<n_ip;
+		LOG_TRIVIAL(info)<<"transportation: next port "<<n_port;
 		#endif
 		unsigned long offset = ifile.get_value<unsigned long>("machines","min_id");
+
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"transportation: offset "<<min_id;
+		#endif
+
 		net_io = new dx_lib::net_stream(p_ip, p_port, n_ip, n_port);
 		
 		fi = new dx_lib::filter<update_type >(update_buf, mul_update, net_io, judge, offset);
