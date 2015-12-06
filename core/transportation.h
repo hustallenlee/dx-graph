@@ -74,7 +74,7 @@ public:
 		unsigned long offset = ifile.get_value<unsigned long>("machines","min_id");
 
 		#ifdef DEBUG
-		LOG_TRIVIAL(info)<<"transportation: offset "<<min_id;
+		LOG_TRIVIAL(info)<<"transportation: offset "<<offset;
 		#endif
 
 		net_io = new dx_lib::net_stream(p_ip, p_port, n_ip, n_port);
