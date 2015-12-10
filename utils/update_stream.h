@@ -82,7 +82,7 @@ namespace dx_lib{
     	}
 		
 		bool get_update(elem_type &update){
-			int readed_bytes = 0;
+			int readed_num = 0;
 
         	if (pointer_rev != 0){
             	update = temp_update_rev[pointer_rev] ;
@@ -91,13 +91,13 @@ namespace dx_lib{
         	}
         	else{	//the rev buffer is empty, then get the data from the stream
 				
-            	readed_bytes = this -> read(temp_update_rev, TEMPSIZE);
-				if (readed_bytes == 0){ //means that the write is over
+            	readed_num = this -> read(temp_update_rev, TEMPSIZE);
+				if (readed_num == 0){ //means that the write is over
 					//std::cout<<"hehe"<<std::endl;
 					return false;
 				}
 				else{
-            		pointer_rev = readed_bytes ;
+            		pointer_rev = readed_num;
 					update = temp_update_rev[pointer_rev];
 					pointer_rev --;
 					return true;

@@ -32,7 +32,7 @@ public:
 
 
 		//update_bitset = new std::vector<bool>;
-    	aux_array = new std::vector<array>(vertex_num, {ULONG_MAX}); //auxiliary array
+    	aux_array = new std::vector<array>(vertex_num, {UINT_MAX}); //auxiliary array
     	edge_size = sizeof(format::edge_t);
 		root = rt;
 		//ua.resize(vertex_num, UINT_MAX);
@@ -98,7 +98,7 @@ public:
     	std::ofstream out("output.csv", std::ios::out);
     	auto begin = (*aux_array).begin();
     	for (auto iter = begin; iter != (*aux_array).end(); iter++){
-        	out << iter -begin<<" "
+        	out << iter -begin + min_id<<" "
             	<<std::fixed<<std::setprecision(16)
             	<<iter -> label<<std::endl;
     	}

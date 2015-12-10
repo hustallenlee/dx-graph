@@ -18,6 +18,7 @@
 #ifndef _LOG_WRAPPER_
 #define _LOG_WRAPPER_
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <thread>
@@ -58,9 +59,12 @@ public:
 	~LOG_TRIVIAL(){
 		std::stringstream final;
 		final << get_current_time();
-		final << " < " <<log_header[level] <<" ";
-		final << std::this_thread::get_id() <<"> ";
+		final << " < " <<log_header[level] <<" >";
 		final << state.str() <<std::endl;
+		#ifdef LOG
+		std::ofstream log_file("./dx.log", std::ios::out | std::ios::app );
+		log_file<<final.str();
+		#endif
 		std::cerr <<final.str();
 	}
 	
