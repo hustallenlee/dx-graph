@@ -3,9 +3,9 @@ pagerank
 wcc
 bfs
 server
-!machine.ini
 *.bin
 *.map
 *.ini
 *.txt
 *.csv
+!machine.ini
