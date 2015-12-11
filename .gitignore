@@ -1,4 +1,9 @@
 dataset
+pagerank
+wcc
+bfs
+server
+!machines.ini
 *.bin
 *.map
 *.ini
