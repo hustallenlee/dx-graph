@@ -1,6 +1,6 @@
 #ifndef _CONTROL_
 #define _CONTROL_
-#include "../net_stream.h"
+#include "../utils/net_stream.h"
 #include "../utils/log_wrapper.h"
 #include "../utils/ini_config.h"
 
@@ -15,13 +15,14 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/optional/optional.hpp>
+#include <boost/foreach.hpp>
 #define MAX_MACHINE_NUM 100
 
 class controller_server{
 private:
 	zmq::context_t  				*context;
 	zmq::socket_t   				*publisher;	
-	zmq::socker_t   				*receiver;
+	zmq::socket_t   				*receiver;
 	boost::thread   				*recv_thrd;
 	std::vector<std::string > 		machines;
 	std::map<std::string, bool >	flags;
@@ -58,7 +59,7 @@ public:
 		record >> receive_port;
 		
 		receiver = new zmq::socket_t(*context, ZMQ_PULL);
-		receiver.bind(address + receive_port);
+		receiver->bind(address + receive_port);
 		
 		
 	}
@@ -70,9 +71,9 @@ public:
 		r_port = pt.get<int >("local.receive_port");
 		boost::property_tree::ptree ips = pt.get_child("machines");
 		
-		BOOST_FOREACH(boost::property_tree::ptree::value_type &v, ips){
+		BOOST_FOREACH(auto &v, ips){
 			//insert all machines ip to a vector
-			machines.push_back(v.second);
+			machines.push_back(v.second.data());
 		}
 		//initialize the map, set all flags to false
 		for (auto iter = machines.begin(); iter != machines.end(); iter ++){
@@ -83,12 +84,12 @@ public:
 	
 	//send a message	
 	void send_message(zmq::message_t message){
-		publisher.send(message);
+		publisher->send(message);
 	}
 
 	//send a string message
 	void send_message(std::string msg){
-		publisher.send(_generate_msg(msg));
+		publisher->send(_generate_msg(msg));
 	}	
 
 	//generate a message using string
@@ -126,7 +127,7 @@ public:
 		std::map<std::string, bool>::iterator pos;
 		unsigned int record_num = 0;
 		
-		unsigned int sp = 0
+		unsigned int sp = 0;
 		while(sp < niter){
 
 			//a super step
@@ -147,7 +148,7 @@ public:
 			while(nnode){
 
 				//receive a message means that the node complete a superstep
-				receiver.recv(&message);
+				receiver->recv(&message);
 				step = get_value<unsigned int >(message, "current_step");
 				
 				//check the current step is right or not
@@ -220,7 +221,7 @@ public:
 		auto f = boost::bind(&controller_server::_receive, this);
 		recv_thrd = new boost::thread(f);		
 
-		recv_thrd.join();
+		recv_thrd->join();
 	}
 };
 
@@ -238,10 +239,11 @@ private:
 public:
 	controller_client(std::string filepath){
 
-		_load_json(filepath);
+		_load_config(filepath);
 
 		std::string address = "tcp://";
 		std::string	p_port;
+		std::string s_port;
 		std::stringstream record;
 
 
@@ -257,15 +259,15 @@ public:
 
 		subscriber = new zmq::socket_t(*context, ZMQ_SUB);
 
-		subscriber.connect(address + server_ip + ":" + s_port );
+		subscriber->connect(address + server_ip + ":" + s_port );
 		
 		const char * filter ="";
 		
 		//the subscriber get all the messages
-		subscriber.setsockopt(ZMQ_SUBSCRIBE, filter, 0);
+		subscriber->setsockopt(ZMQ_SUBSCRIBE, filter, 0);
 
 		sender = new zmq::socket_t(*context, ZMQ_PUSH);
-		sender.connect(address + "*:" + p_port);
+		sender->connect(address + "*:" + p_port);
 		
 	}
 
@@ -306,7 +308,7 @@ public:
 		//copy to the message
 		memcpy((void *)message.data(), str.c_str(), str.size());
 
-		sender.send(message);
+		sender->send(message);
 		
 	}
 	int recv_msg(){
@@ -315,7 +317,7 @@ public:
 		//the second is go on message.		"go_on":true
 		//the third is end message.			"end":true
 		zmq::message_t command;
-		subscriber.recv(&command);
+		subscriber->recv(&command);
 		std::string json_string((char *)command.data(), command.size());
 		
 		std::stringstream ss(json_string);
