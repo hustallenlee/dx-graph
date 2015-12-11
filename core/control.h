@@ -265,7 +265,7 @@ public:
 
 		subscriber = new zmq::socket_t(*context, ZMQ_SUB);
 
-		address_sub = address + server_ip + ":" + s_port;
+		address_sub = address_sub + server_ip + ":" + s_port;
 
 		#ifdef DEBUG
 		LOG_TRIVIAL(info)<<"address_sub "<<address_sub;
@@ -279,7 +279,13 @@ public:
 		subscriber->setsockopt(ZMQ_SUBSCRIBE, filter, 0);
 
 		sender = new zmq::socket_t(*context, ZMQ_PUSH);
-		sender->connect(address + "*:" + p_port);
+		address_send = address_send + "*:" +p_port;
+
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"address_send "<<address_send;
+		#endif
+	
+		sender->connect(address_send);
 		
 	}
 
