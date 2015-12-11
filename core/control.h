@@ -279,7 +279,7 @@ public:
 		subscriber->setsockopt(ZMQ_SUBSCRIBE, filter, 0);
 
 		sender = new zmq::socket_t(*context, ZMQ_PUSH);
-		address_send = address_send + "*:" +p_port;
+		address_send = address_send + server_ip + ":" +p_port;
 
 		#ifdef DEBUG
 		LOG_TRIVIAL(info)<<"address_send "<<address_send;
