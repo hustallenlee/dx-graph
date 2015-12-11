@@ -12,7 +12,7 @@
     ],
 
 	"local":{
-		"publisher_port":11001
+		"publisher_port":11001,
 		"receive_port":11002
 	}
 }

@@ -241,7 +241,9 @@ public:
 
 		_load_config(filepath);
 
-		std::string address = "tcp://";
+		std::string address_sub = "tcp://";
+		std::string address_send = "tcp://";
+
 		std::string	p_port;
 		std::string s_port;
 		std::stringstream record;
@@ -255,11 +257,21 @@ public:
 		record << push_port;
 		record >> p_port;
 
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"s_port "<<s_port<<" p_port "<<p_port;
+		#endif
+
 		context = new zmq::context_t(1);
 
 		subscriber = new zmq::socket_t(*context, ZMQ_SUB);
 
-		subscriber->connect(address + server_ip + ":" + s_port );
+		address_sub = address + server_ip + ":" + s_port;
+
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<<"address_sub "<<address_sub;
+		#endif
+		
+		subscriber->connect(address_sub);
 		
 		const char * filter ="";
 		
