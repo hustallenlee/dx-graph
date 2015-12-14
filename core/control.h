@@ -209,19 +209,20 @@ public:
 				else{
 					LOG_TRIVIAL(info)<<"the node is not in the control node";
 				}
-			}
+			}//end one a iteration 
 			
 			//reset all the flags
 			for (pos = flags.begin(); pos != flags.end(); pos ++){
 				pos->second = false;
 			}
 
+			//send go on to all the compute node
 			send_gonext();		
 			if (stop == true){
 				break;
 			}
 
-			niter --;
+			sp ++;
 		}
 		//send the end message to all the compute node
 		send_end();
