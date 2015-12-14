@@ -78,9 +78,9 @@ public:
 			//insert all machines ip to a vector
 			
 			machines.push_back(v.second.get_value<std::string>());
-			#ifdef DEBUG
-			std::cout<<"ip: "<<v.second.get_value<std::string>();
-			#endif
+			//#ifdef DEBUG
+			//std::cout<<"ip: "<<v.second.get_value<std::string>();
+			//#endif
 		}
 		//initialize the map, set all flags to false
 		for (auto iter = machines.begin(); iter != machines.end(); iter ++){
@@ -148,6 +148,9 @@ public:
 		unsigned int record_num = 0;
 		
 		unsigned int sp = 0;
+		
+		//the number of compute node
+		unsigned int nnode = machines.size();
 
 		//first, send the start message to start the compute node
 		send_start();
@@ -155,10 +158,9 @@ public:
 		while(sp < niter){
 
 			//a super step
-			LOG_TRIVIAL(info)<<"super step "<<sp;
+			LOG_TRIVIAL(info)<<"********super step "<<sp
+							 <<" ********";
 
-			//the number of compute node
-			unsigned int nnode = machines.size();
 
 			#ifdef DEBUG
 			LOG_TRIVIAL(info)<<"the compute node number: "<< nnode;
@@ -186,7 +188,7 @@ public:
 				//check the current step is right or not
 				if (step != sp){
 					LOG_TRIVIAL(info) << "The current step should be " << sp
-									  << "but the current compute node step is "
+									  << " but the current compute node step is "
 									  << step;
 					stop = true;
 					break;
@@ -209,21 +211,21 @@ public:
 				else{
 					LOG_TRIVIAL(info)<<"the node is not in the control node";
 				}
-			}//end one a iteration 
+			}//end one iteration 
 			
 			//reset all the flags
 			for (pos = flags.begin(); pos != flags.end(); pos ++){
 				pos->second = false;
 			}
 
-			//send go on to all the compute node
-			send_gonext();		
 			if (stop == true){
 				break;
 			}
+			//send go on next iteration message to all the compute node
+			send_gonext();		
 
 			sp ++;
-		}
+		}//end sp
 		//send the end message to all the compute node
 		send_end();
 	}

@@ -163,6 +163,7 @@ namespace dx_lib {
 		}
 		
 		//write the file into the buffer 
+		//can be used in non-BYTE buffer
 		int write( std::string filename ){
 			std::ifstream infile( filename,std::ios::in | std::ios::binary);
 			const int size = 100;
