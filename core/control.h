@@ -72,11 +72,15 @@ public:
 
 		p_port = pt.get<int >("local.publisher_port");
 		r_port = pt.get<int >("local.receive_port");
-		boost::property_tree::ptree ips = pt.get_child("machines");
+		boost::property_tree::ptree ips = pt.get_child("ips");
 		
 		BOOST_FOREACH(auto &v, ips){
 			//insert all machines ip to a vector
-			machines.push_back(v.second.data());
+			
+			machines.push_back(v.second.get_value<std::string>());
+			#ifdef DEBUG
+			std::cout<<"ip: "<<v.second.get_value<std::string>();
+			#endif
 		}
 		//initialize the map, set all flags to false
 		for (auto iter = machines.begin(); iter != machines.end(); iter ++){
@@ -348,7 +352,7 @@ public:
 		ss << "{";
 		ss << "\"current_step\":";
 		ss << current_step;
-		ss << ", \"convergence\":true,";
+		ss << ", \"convergence\":false,";
 		ss << "\"ip\":";
 		ss << "\"";	
 		ss << localIP;
