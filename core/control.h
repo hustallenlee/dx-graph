@@ -149,8 +149,6 @@ public:
 		
 		unsigned int sp = 0;
 		
-		//the number of compute node
-		unsigned int nnode = machines.size();
 
 		//first, send the start message to start the compute node
 		send_start();
@@ -169,6 +167,9 @@ public:
 			//at every beginning of the super step
 			//send the start message to all compute node
 			bool stop = false;
+
+			//the number of compute node
+			unsigned int nnode = machines.size();
 
 			//every super step should receive all machine's message
 			//and when all the messages have been received,
