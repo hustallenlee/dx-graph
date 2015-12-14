@@ -16,6 +16,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/foreach.hpp>
+#include <unistd.h>
+
 #define MAX_MACHINE_NUM 100
 
 class controller_server{
@@ -37,11 +39,12 @@ public:
 		context = new zmq::context_t(1);
 
 
+		std::stringstream record;
 		std::string address = "tcp://*:";
+
 		//publisher start
 		publisher = new zmq::socket_t(*context, ZMQ_PUB);
 		std::string publish_port;
-		std::stringstream record;
 
 		record.clear();
 		record << p_port;
@@ -60,7 +63,7 @@ public:
 		
 		receiver = new zmq::socket_t(*context, ZMQ_PULL);
 		receiver->bind(address + receive_port);
-		
+		sleep(1);		
 		
 	}
 	void _load_json(){
@@ -84,12 +87,15 @@ public:
 	
 	//send a message	
 	void send_message(zmq::message_t message){
+		
+		
 		publisher->send(message);
 	}
 
 	//send a string message
 	void send_message(std::string msg){
-		publisher->send(_generate_msg(msg));
+		//publisher->send(_generate_msg(msg));
+		send_message(_generate_msg(msg));
 	}	
 
 	//generate a message using string
@@ -102,18 +108,28 @@ public:
 	//send all subscribers a start message
 	void send_start(){
 		std::string start_str = "{\"start\":true}";
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<< "send the start message: "<< start_str;
+		#endif
 		send_message( start_str );
+		
 	}
 	
 	//send the "go on" message
 	void send_gonext(){
 		std::string gonext_str = "{\"go_on\":true}";
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<< "send the go_on message: "<< gonext_str;
+		#endif
 		send_message( gonext_str );
 	}
 	//send all subscribers a start message
 	void send_end(){
-		std::string start_str = "{\"end\":true}";
-		send_message( start_str );
+		std::string end_str = "{\"end\":true}";
+		#ifdef DEBUG
+		LOG_TRIVIAL(info)<< "send the end message: "<< end_str;
+		#endif
+		send_message( end_str );
 	}
 
 	//receive the compute node 
@@ -128,6 +144,10 @@ public:
 		unsigned int record_num = 0;
 		
 		unsigned int sp = 0;
+
+		//first, send the start message to start the compute node
+		send_start();
+
 		while(sp < niter){
 
 			//a super step
@@ -135,10 +155,13 @@ public:
 
 			//the number of compute node
 			unsigned int nnode = machines.size();
+
+			#ifdef DEBUG
+			LOG_TRIVIAL(info)<<"the compute node number: "<< nnode;
+			#endif
 				
 			//at every beginning of the super step
 			//send the start message to all compute node
-			send_start();
 			bool stop = false;
 
 			//every super step should receive all machine's message
@@ -148,7 +171,12 @@ public:
 			while(nnode){
 
 				//receive a message means that the node complete a superstep
+				LOG_TRIVIAL(info)<<"remain "<< nnode <<" to handler";
+
 				receiver->recv(&message);
+				
+				LOG_TRIVIAL(info)<<"message size "<< message.size();
+				print_msg(message);
 				step = get_value<unsigned int >(message, "current_step");
 				
 				//check the current step is right or not
@@ -172,6 +200,10 @@ public:
 
 				if ( ( pos = flags.find( ip ) ) != flags.end() ){
 					pos->second = true;
+					nnode --;
+				}
+				else{
+					LOG_TRIVIAL(info)<<"the node is not in the control node";
 				}
 			}
 			
@@ -190,7 +222,10 @@ public:
 		//send the end message to all the compute node
 		send_end();
 	}
-
+	void print_msg(zmq::message_t &msg){
+		std::string str((char *)msg.data(), msg.size());
+		LOG_TRIVIAL(info)<<"received message: "<<str;
+	}
 	//analysis the message, the message is a json string
 	//for exmaple, a json string is:
 	//{
@@ -218,10 +253,10 @@ public:
 	}
 
 	void start(){
-		auto f = boost::bind(&controller_server::_receive, this);
-		recv_thrd = new boost::thread(f);		
-
-		recv_thrd->join();
+		//auto f = boost::bind(&controller_server::_receive, this);
+		//recv_thrd = new boost::thread(f);		
+		_receive();
+		//recv_thrd->join();
 	}
 };
 
@@ -313,7 +348,7 @@ public:
 		ss << "{";
 		ss << "\"current_step\":";
 		ss << current_step;
-		ss << ", \"convergence\":true,";
+		ss << ",\"convergence\":true,";
 		ss << "\"ip\":";
 		ss << "\"";	
 		ss << localIP;

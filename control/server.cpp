@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+
 int main(int argc, char * argv[]){
 	std::string str(argv[1]);
 	std::stringstream ss(str);
