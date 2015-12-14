@@ -11,19 +11,16 @@ int main(int argc, char * argv[]){
 		switch(type){
 			case 1:
 				LOG_TRIVIAL(info)<<"received start message";
-				sleep(10);
 				break;
 			case 2:
 				LOG_TRIVIAL(info)<<"received go on message";
-				sleep(5);
 				break;
 			case 3:
 				LOG_TRIVIAL(info)<<"received end  message";
-				sleep(5);
+				flag = 1;
 				break;
 			default:
 				LOG_TRIVIAL(info)<<"the message can not be recongnized";
-				flag = 1;
 				break;
 		}
 		if (flag){
