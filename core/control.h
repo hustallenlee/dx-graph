@@ -348,14 +348,14 @@ public:
 		ss << "{";
 		ss << "\"current_step\":";
 		ss << current_step;
-		ss << ",\"convergence\":true,";
+		ss << ", \"convergence\":true,";
 		ss << "\"ip\":";
 		ss << "\"";	
 		ss << localIP;
 		ss << "\"";
 		ss << "}";
 		LOG_TRIVIAL(info)<< "send to server :" <<ss.str();
-		ss >> str;
+		str.assign(ss.str());
 		zmq::message_t message(str.size());
 
 		//copy to the message
