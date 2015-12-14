@@ -159,6 +159,8 @@ public:
 			LOG_TRIVIAL(info)<<"********super step "<<sp
 							 <<" ********";
 
+			//the number of compute node
+			unsigned int nnode = machines.size();
 
 			#ifdef DEBUG
 			LOG_TRIVIAL(info)<<"the compute node number: "<< nnode;
@@ -168,8 +170,6 @@ public:
 			//send the start message to all compute node
 			bool stop = false;
 
-			//the number of compute node
-			unsigned int nnode = machines.size();
 
 			//every super step should receive all machine's message
 			//and when all the messages have been received,
