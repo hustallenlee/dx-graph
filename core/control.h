@@ -136,8 +136,8 @@ public:
 		send_message( end_str );
 	}
 
-	//receive the compute node 
-	void _receive(){
+	//start  
+	void start(){
 		zmq::message_t message;
 		unsigned int step = 0;
 		unsigned int max_step = UINT_MAX;
@@ -260,12 +260,12 @@ public:
 		return pt.get<type >(path);
 	}
 
-	void start(){
+	/*void start(){
 		//auto f = boost::bind(&controller_server::_receive, this);
 		//recv_thrd = new boost::thread(f);		
 		_receive();
 		//recv_thrd->join();
-	}
+	}*/
 };
 
 class controller_client{

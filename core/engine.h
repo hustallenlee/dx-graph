@@ -10,6 +10,7 @@
 #include "../utils/filter.h"
 #include "transportation.h"
 #include "judge.h"
+#include "control.h"
 
 #include <iostream>
 #include <vector>
@@ -287,8 +288,11 @@ public:
 
 	//run the super step
 	virtual void run(){
-		
+
+		//the scatter thread
 		auto f_scatter = boost::bind(&engine::scatter, this);
+		
+		//the gather thread
 		auto f_gather = boost::bind(&engine::gather, this);
 
 		while ( !reach_max_step() ){
