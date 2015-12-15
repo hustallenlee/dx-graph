@@ -1,11 +1,15 @@
 dataset
+test
 pagerank
 wcc
 bfs
+client
 server
+snap2type1
 *.bin
 *.map
 *.ini
 *.txt
 *.csv
+*.out
 !machine.ini
