@@ -4,7 +4,6 @@
 #include <zmq.hpp>
 #include <string>
 #include <sstream>
-#include "update_stream.h"
 namespace dx_lib{
 
 	
@@ -66,7 +65,7 @@ namespace dx_lib{
 			return  snd_sock->send(message);
 		}
 
-		int send(char * buf, int n){
+		int send(const char * buf, int n){
 			//std::cout<<"here"<<std::endl;
 			return  snd_sock->send((void *)buf, n);
 		}

@@ -13,3 +13,4 @@ snap2type1
 *.csv
 *.out
 !machine.ini
+/dataset/
