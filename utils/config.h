@@ -1,4 +1,9 @@
 /*
+ *
+ * author:      allen lee(Junhao Li) allen_lee922@foxmail.com
+ * address:     WNLO, Huazhong University of Science & Technology
+ * Time:        2016.11
+ *
  * dist-xs
  *
  * Copyright 2015 Key Laboratory of Data Storage System, Ministry of Education WNLO HUST
@@ -17,69 +22,99 @@
  */
 #ifndef _CONFIG_
 #define _CONFIG_
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-
+#include <bits/stdc++.h>
+#include <cassert>
+#include "log_wrapper.h"
+#define NKEY 4
 namespace format {
-	typedef struct{
-		std::string key;
-		std::string value;
-	} kv;
+	//typedef struct{
+	//	std::string key;
+	//	std::string value;
+	//} kv;
 	class config{
+    public:
+        typedef std::map<std::string, std::string> _KV;
+        
 	private:
-		std::string filename;
-		kv conf[4];
-		std::string str_null;
-
+		std::string config_filename;
+		_KV conf;
+        std::string keys[NKEY];
 	public:
-		config(){
-			str_null = "";
-		}
-		config(std::string config_filename){
-			open_fill(config_filename);
-		}
-		bool open_fill(std::string config_filename){
-			filename = config_filename;
-            str_null = "";
-            char line[1024];
-            std::string str;
 
-            std::ifstream config_file(filename);
+		explicit config(std::string config_fname){
+            assert(config_fname != "");
+            keys[0] = "type";
+            keys[1] = "name";
+            keys[2] = "vertices";
+            keys[3] = "edges";
+			load(config_fname);
+		}
+
+		bool load(std::string config_fname){
+			config_filename = config_fname;
+            std::string line;
+
+            std::ifstream config_file(config_filename);
 			if (!config_file){
+                LOG_TRIVIAL(error)<<"config file can not be opened for read";
 				return false;
 			}
 
             //std::cout<<"gou test"<< std::endl;
-            while(config_file.getline(line, sizeof(line))){
-                str = line;
+            while(getline(config_file,line)){
 
-                if ( str !="" && str.find_first_of('#') == std::string::npos){
+                if ( line !="" && line.find_first_of('#') == std::string::npos){
                     std::istringstream record(line);
-                    record >> conf[0].value;
-                    //std::cout<< conf[0].value << std::endl;
-
-                    record >> conf[1].value;
-                    record >> conf[2].value;
-                    record >> conf[3].value;
+                    std::string str;
+                    for(int i=0;i<NKEY;i++){
+                        record >> str;
+                        record.clear();
+                        conf[keys[i]]=str;
+                    }
                     break;
                 }
             }
             config_file.close();
 			return true;
 		}	
-		//~config(){
-		//	if (config_file){
-		//		config_file.close();
-		//	}
-		void show(){
-			std::cout<< "type: "<< conf[0].value<<std::endl;
-			std::cout<< "name: "<< conf[1].value<<std::endl;
-			std::cout<< "vertices: "<< conf[2].value<<std::endl;
-			std::cout<< "edges: "<< conf[3].value<<std::endl;
+
+		bool save(){
+            std::ofstream config_file(config_filename);
+            if(!config_file){
+                    LOG_TRIVIAL(error)<<"config file can not be opened for write";
+                    return false;
+            }
+            else{
+                config_file<<"#";
+                for(int i = 0; i< NKEY; i++){
+                    if(i != (NKEY-1)){
+                        config_file<<keys[i]<<" ";
+                    }
+                    else{
+                        config_file<<keys[i]<<std::endl;
+                    }
+                }
+                
+                for(int i = 0; i< NKEY; i++){
+                    if(i != (NKEY-1)){
+                        config_file<<conf[keys[i]]<<" ";
+                    }
+                    else{
+                        config_file<<conf[keys[i]]<<std::endl;
+                    }
+                }
+            }
+            return true;
 		}
-		std::string &read(std::string key){
+        ~config(){
+            save();
+        }
+		void show(){
+            for(int i=0;i<NKEY;i++){
+			    std::cout<< keys[i]<<": "<< conf[keys[i]]<<std::endl;
+            }
+		}
+		/*std::string &read(std::string key){
 				if (key == "type")
 					return conf[0].value;
 
@@ -96,8 +131,8 @@ namespace format {
 				}
 				else 
 					return str_null;
-		}
-		void write(){
+		}*/
+		/*void write(){
 			char line[1024];
 			int i=0;
 			std::ifstream config_file(filename);
@@ -111,10 +146,10 @@ namespace format {
 				write_config_file<< conf[i].value<<" ";
 			}
 			write_config_file.close();
-		}
+		}*/
 
 		std::string &operator[](std::string key){
-			return read(key);
+			return conf[key];
 		}
 	};
 }
