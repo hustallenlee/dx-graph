@@ -32,21 +32,57 @@
 //#include <boost/thread/condition.hpp>
 #include "log_wrapper.h"
 #include "dispatcher.h"
+#include "config.h"
 namespace dx_lib{
     class graph_data{
         public:
             explicit graph_data(std::string graphfile_name)
-                :m_graphfile_name(graphfile_name)
-                 , m_graphconfig_name(graphfile_name+".json"){
+                :m_graphdata_name(graphfile_name){            
+    
+            }
+            void init(){
+                format::config conf(m_graphdata_name+".conf");
+                stringstream ss;
 
+                ss << conf["type"];            //graph type
+                ss >> type;
+                ss.clear();
 
+                ss << conf["vertices"];  //graph vertices numbers
+                ss >> n_vertices;
+                ss.clear();
+
+                ss << conf["edges"];
+                ss >> n_edges;        //graph edges numbers
+
+            }
+            //get graph type
+            int get_type(){
+                return type;
+            }
+            //get numbers of the graph vertices
+            int get_vertices_count(){
+                return n_vertices;
+            }
+
+            //get numbers of the graph edges
+            int get_edges_count(){
+                return n_edges;
+            }
+
+            ~graph_data(){
+                
             }
             //friend inline dispatcher & operator<<(dispatcher out, graph_data &gd){
                 
             //}
         private:
-            const std::string m_graphfile_name;
-            std::string m_graphconfig_name;
+            const std::string m_graphdata_name;
+            //std::string m_graphconfig_name;
+            //format::config conf;
+            int type;
+            int n_vertices;
+            int n_edges;
     };    
 }
 #endif

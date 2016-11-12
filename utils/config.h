@@ -40,7 +40,9 @@ namespace format {
 		_KV conf;
         std::string keys[NKEY];
 	public:
-
+        config(){
+            //do nothing
+        }
 		explicit config(std::string config_fname){
             assert(config_fname != "");
             keys[0] = "type";
