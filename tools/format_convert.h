@@ -111,7 +111,7 @@ namespace format {
 					map_file << i <<" " << edge.dst << std::endl;
 					edge.dst = i;
 					i++;
-				}
+				
 				else{
 					edge.dst = map_ins.first->second;
 				}

@@ -45,7 +45,7 @@ namespace dx_lib {
 	//缓冲区类
 	template <class elem_type>
 	class buffer {
-	private:
+	protected:
 
 		elem_type *data;
 		int front;
@@ -86,6 +86,7 @@ namespace dx_lib {
 	
 		~buffer(){
 			delete [] data;
+			delete thrd;
 		}
 
 		/*void clear(){
@@ -171,6 +172,7 @@ namespace dx_lib {
 		}
 		
 		//write the file into the buffer 
+		//can be used in non-BYTE buffer
 		int write( std::string filename ){
 			std::ifstream infile( filename,std::ios::in | std::ios::binary);
 			const int size = 100;
@@ -200,7 +202,8 @@ namespace dx_lib {
 			//LOG_TRIVIAL(info)<< "write thread has finished total write "<< write_count << " bytes";
 			return write_count;
 		}
-		
+
+
 		int read(elem_type * buf, int n){
 			int total = n;
 			int temp = n;
@@ -226,6 +229,7 @@ namespace dx_lib {
 			thrd = new boost::thread(f);
 		}
 
+
 		void write_join(){
 			if (thrd){
 				if (thrd->joinable() ){
@@ -241,7 +245,7 @@ namespace dx_lib {
 			//std::cout<<"in buffer is_over"<<std::endl;	
 			return (over == 1) && (is_empty()) ;
 		}
-		
+
 		void reset(){
 			over = 0;
 			read_count = 0;
