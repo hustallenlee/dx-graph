@@ -1,5 +1,7 @@
 /*
- * dist-xs
+ * author:      allen lee(Junhao Li) allen_lee922@foxmail.com
+ * address:     WNLO, Huazhong University of Science & Technology
+ * Time:        2016.11
  *
  * Copyright 2015 Key Laboratory of Data Storage System, Ministry of Education WNLO HUST
  *
@@ -14,6 +16,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ */
+
+/*
+ *  This namespace dx_lib includes somes utils for our project.
+ *  Class buffer is a class that buffers graph
+ *
+ *
  */
 #ifndef _BUFFER_
 #define _BUFFER_
